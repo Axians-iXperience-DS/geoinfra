@@ -131,22 +131,18 @@ sen2 = get_s2_sr_cld_col(AOI, START_DATE, END_DATE)
 """#NDVI Bands and dataframe"""
 
 import pandas as pd
-import altair as alt
 import numpy as np
-import folium
 import seaborn as sns
-
-from sklearn.ensemble import RandomForestRegressor
-reg = RandomForestRegressor()
-reg.fit
 
 from google.colab import drive
 drive.mount('/content/drive')
 
-collection = ee.ImageCollection(sen2).filterDate("2018-01-01", "2021-08-01")
+collection = ee.ImageCollection(sen2).filterDate("2021-07-15", "2021-08-01")
 point = {'type':'Point', 'coordinates':[-25.3511, 37.7623]};
+#poly_geometry = geemap.geojson_to_ee('/content/drive/MyDrive/RoW_powerline_corridors_webm.geojson')
+poly_geometry = geemap.shp_to_ee('/content/drive/MyDrive/RoW_powerline_corridors/RoW_powerline_corridors.shp')
 
-info = collection.getRegion(point, 500).getInfo()
+info = collection.getRegion(poly_geometry, 50).getInfo()
 
 header = info[0]
 data = np.array(info[1:])
@@ -164,12 +160,12 @@ red = yData[:,0]
 nir = yData[:,1]
 ndvi = (nir - red) / (nir + red)
 
-df = pd.DataFrame(data = ndvi, index =list(range(len(ndvi))), columns = ['B5'])
+df = pd.DataFrame(data = ndvi, index =list(range(len(ndvi))), columns = ['NDVI'])
 df = df.interpolate()
 df['Date'] = pd.Series(time, index = df.index)
 df = df.set_index(df.Date)
 df.index = pd.to_datetime(df.index)
-df['B5'] = df['B5'].fillna(0)
+df['NDVI'] = df['NDVI'].fillna(0)
 
 header
 
